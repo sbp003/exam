@@ -1,0 +1,54 @@
+---
+title: "First Year Exam"
+author: "Sneha Patel A12125893"
+format: html
+---
+
+# Obtaining and opening the data 
+First, go to https://data.chhs.ca.gov/dataset/covid-19-variant-data and download the .csv file titled "Covid-19 Variant Data". You can move the file to the same directory as your Quarto document for ease of access. 
+Next, we will read the file, and check the first few lines of its contents. 
+```{r}
+c19 <- read.csv("covid19_variants.csv")
+
+head(c19)
+```
+
+# Visualizing the data
+We want to graph the data to show the percentage of each variant in all specimens sequenced by month. For this, we will need ggplot2, lubridate, and dplyr 
+```{r}
+library(ggplot2)
+library(lubridate) 
+library(dplyr)
+```
+
+The `date` column of our data is type <character>. We want to change it to <date> using a lubridate function.
+```{r}
+c19$date <- ymd(c19$date)
+head(c19)
+```
+
+Let's plot what we have so far!
+```{r}
+plot1 <- ggplot(data = c19) + aes(x = date, y = percentage, col=variant_name) + geom_line()
+plot1
+```
+We want to remove data that shows the total number, and other variants. We also only want our data up until May 2022. We will do that with a dplyr function.
+```{r}
+c19_variants <- c19 %>%
+  filter((variant_name != "Other") & (variant_name != "Total"))
+
+c19_variants <- c19_variants %>%
+  filter(date < "2022-06-01") 
+```
+
+Let's plot what we have so far!
+```{r}
+p <- ggplot(data = c19_variants) + aes(x = date, y = percentage, col=variant_name) + geom_line()
+p
+```
+This looks great, but lets change the title, axis labels, legend label, and the ticks on the x-axis to show us each month. 
+```{r}
+p <- p + labs(title = "Covid-19 Variants in California", y = "Percentage of sequenced specimen", x = "Date", col="Variant") + scale_x_date(date_breaks = "month", date_labels = "%b %Y") + theme(axis.text.x = element_text(angle=45, hjust=1))
+p
+```
+WOW! Beautiful :)
